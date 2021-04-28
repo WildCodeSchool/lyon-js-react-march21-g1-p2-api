@@ -49,6 +49,24 @@ orderRouter.get('/', (req, res) => {
     });
 });
 
+/* chatbox app
+const orderRouter = express.Router();
+app.use('/chat_messages', chat_messagesRouter);
+
+orderRouter.get('/', (req, res) => {
+  connection
+    .promise()
+    .query('SELECT * FROM chat_messages')
+    .then(([results]) => {
+      res.json(results);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.sendStatus(500);
+    });
+});
+*/
+
 orderRouter.post('/', (req, res) => {
   const { ingredients, quantity, price } = req.body;
   const { error: validationErrors } = Joi.object({
@@ -76,6 +94,34 @@ orderRouter.post('/', (req, res) => {
   }
 });
 
+/* chatbox app
+chat_messageesRouter.post('/', (req, res) => {
+  const { pseudos, messages } = req.body;
+  const { error: validationErrors } = Joi.object({
+    pseudos: Joi.string().max(255).required(),
+    messages: Joi.string().required(),
+  }).validate({ pseudos, messages }, { abortEarly: false });
+
+  if (validationErrors) {
+    res.status(422).send({ validationErrors });
+  } else {
+    connection
+      .promise()
+      .query(
+        'INSERT INTO chat_messages (pseudos, messages) VALUES (?, ?)',
+        [pseudo, messages]
+      )
+      .then(([result]) => {
+        res.send({ id: result.insertId, pseudos, messages });
+      })
+      .catch((err) => {
+        console.error(err);
+        res.sendStatus(500);
+      });
+  }
+});
+*/
+
 orderRouter.get('/:id', (req, res) => {
   const { id } = req.params;
   connection
@@ -90,6 +136,23 @@ orderRouter.get('/:id', (req, res) => {
       res.sendStatus(500);
     });
 });
+
+/* chatbox app
+chatbox_messagesRouter.get('/:id', (req, res) => {
+  const { id } = req.params;
+  connection
+    .promise()
+    .query('SELECT * FROM orders WHERE id = ?', [id])
+    .then(([results]) => {
+      if (results.length) res.send(results[0]);
+      else res.sendStatus(404);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.sendStatus(500);
+    });
+});
+*/
 
 // server setup
 app.listen(PORT, () => {
