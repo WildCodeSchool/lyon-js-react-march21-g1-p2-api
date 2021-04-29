@@ -1,13 +1,23 @@
+const axios = require('axios');
 const express = require('express');
+
 const cors = require('cors');
 const Joi = require('joi');
-const { PORT, CORS_ALLOWED_ORIGINS, inTestEnv } = require('./env');
+const {
+  PORT,
+  CORS_ALLOWED_ORIGINS,
+  inTestEnv,
+  EDAMAM_API_ID,
+  EDAMAM_SECRET_API_KEY,
+} = require('./env');
 const connection = require('./db-config');
 
 const app = express();
-
 app.use(express.json());
 
+const delayInMilliseconds = 60 * 60 * 1000;
+
+/* ********************** connection to database ********************** */
 connection.connect((err) => {
   if (err) {
     console.error('error connecting to db');
@@ -16,7 +26,7 @@ connection.connect((err) => {
   }
 });
 
-// app settings
+/* ********************** app settings ********************** */
 app.set('x-powered-by', false); // for security
 
 const allowedOrigins = CORS_ALLOWED_ORIGINS.split(',');
@@ -33,6 +43,46 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+/* ********************** Connection & request to API periodically ********************** */
+const edamamRequest = () => {
+  const firstRequest = connection
+    .promise()
+    .query(
+      'SELECT ingredients_id AS id, ingredients_ingr AS ingr FROM ingredients'
+    )
+    .catch((err) => {
+      console.log(err);
+    });
+
+  firstRequest
+    .then((reqresult) => {
+      const listOfIngredients = Object.values(
+        JSON.parse(JSON.stringify(reqresult[0]))
+      );
+      listOfIngredients.forEach((ingredient) =>
+        axios
+          .get(
+            `https://api.edamam.com/api/food-database/v2/parser?app_id=${EDAMAM_API_ID}&app_key=${EDAMAM_SECRET_API_KEY}&category=generic-foods&ingr=${ingredient.ingr}`
+          )
+          .then((response) => response.data)
+          .then((data) => {
+            connection
+              .promise()
+              .query(
+                `UPDATE ingredients SET ingredients_kcal100 = ? WHERE ingredients_id = ?;`,
+                [data.parsed[0].food.nutrients.ENERC_KCAL, ingredient.id]
+              );
+          })
+      );
+    })
+    .catch((err) => console.log(err));
+  console.log(`Request to API done at ${new Date().toLocaleString()}`);
+};
+
+edamamRequest();
+setInterval(edamamRequest, delayInMilliseconds);
+
+/* ********************** Router for orders ********************** */
 const orderRouter = express.Router();
 app.use('/orders', orderRouter);
 
@@ -42,6 +92,21 @@ orderRouter.get('/', (req, res) => {
     .query('SELECT * FROM orders')
     .then(([results]) => {
       res.json(results);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.sendStatus(500);
+    });
+});
+
+orderRouter.get('/:id', (req, res) => {
+  const { id } = req.params;
+  connection
+    .promise()
+    .query('SELECT * FROM orders WHERE id = ?', [id])
+    .then(([results]) => {
+      if (results.length) res.send(results[0]);
+      else res.sendStatus(404);
     })
     .catch((err) => {
       console.error(err);
@@ -76,11 +141,33 @@ orderRouter.post('/', (req, res) => {
   }
 });
 
-orderRouter.get('/:id', (req, res) => {
+/* ********************** Router for ingredients ********************** */
+const ingredientsRouter = express.Router();
+app.use('/order/create-pizza', ingredientsRouter);
+
+ingredientsRouter.get('/', (req, res) => {
+  connection
+    .promise()
+    .query(
+      'SELECT ingredients_category AS category, ingredients_id AS id, ingredients_imgaddress AS imgsrc, ingredients_imglayer AS imglayer, ingredients_ingr AS ingr,ingredients_kcal100 AS kcal100, ingredients_name AS name, ingredients_price AS price, ingredients_serving AS serving FROM ingredients'
+    )
+    .then(([results]) => {
+      res.json(results);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.sendStatus(500);
+    });
+});
+
+ingredientsRouter.get('/:id', (req, res) => {
   const { id } = req.params;
   connection
     .promise()
-    .query('SELECT * FROM orders WHERE id = ?', [id])
+    .query(
+      'SELECT ingredients_category AS category, ingredients_id AS id, ingredients_imgaddress AS imgsrc, ingredients_imglayer AS imglayer, ingredients_ingr AS ingr,ingredients_kcal100 AS kcal100, ingredients_name AS name, ingredients_price AS price, ingredients_serving AS serving  FROM ingredients WHERE id = ?',
+      [id]
+    )
     .then(([results]) => {
       if (results.length) res.send(results[0]);
       else res.sendStatus(404);
@@ -91,14 +178,14 @@ orderRouter.get('/:id', (req, res) => {
     });
 });
 
-// server setup
+/* ********************** server setup ********************** */
 app.listen(PORT, () => {
   if (!inTestEnv) {
     console.log(`Server running on port ${PORT}`);
   }
 });
 
-// process setup : improves error reporting
+/* ********************** process setup : improves error reporting ********************** */
 process.on('unhandledRejection', (error) => {
   console.error('unhandledRejection', JSON.stringify(error), error.stack);
   process.exit(1);
