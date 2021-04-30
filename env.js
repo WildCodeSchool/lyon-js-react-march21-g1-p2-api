@@ -15,6 +15,8 @@ const inTestEnv = getEnv('NODE_ENV') === 'test';
 
 const PORT = getEnv(`PORT${inTestEnv ? '_TEST' : ''}`);
 const CORS_ALLOWED_ORIGINS = getEnv(`CORS_ALLOWED_ORIGINS`);
+const EDAMAM_API_ID = getEnv('EDAMAM_API_ID');
+const EDAMAM_SECRET_API_KEY = getEnv('EDAMAM_SECRET_API_KEY');
 
 module.exports = {
   getEnv,
@@ -23,4 +25,6 @@ module.exports = {
   inDevEnv,
   PORT,
   CORS_ALLOWED_ORIGINS,
+  EDAMAM_SECRET_API_KEY,
+  EDAMAM_API_ID,
 };
