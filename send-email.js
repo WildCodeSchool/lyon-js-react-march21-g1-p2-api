@@ -1,12 +1,14 @@
-const handleEmailSubmit = (event) => {
-    event.preventDefault();
+const emailer = require ('./emailer')
+
+const handleEmailSubmit = () => {
+    
     emailer.sendMail(
       {
-        from: 'maupied69@hotmail.com',
+        from: 'joris-maupied_student2021@wilder.school',
         to: 'maupied69@hotmail.com',
         subject: "Vous avez recu un message de la part d'un utilisateur",
-        text: `${emailFname}${emailLname}\n${emailMessage}`,
-        html: `<p>${emailFname}${emailLname}\n${emailMessage}</p>`,
+        text: 'test',
+        html: '<p>test</p>',
       },
       (err, info) => {
         if (err) console.error(err);
@@ -14,3 +16,6 @@ const handleEmailSubmit = (event) => {
       }
     );
   };
+
+  handleEmailSubmit();
+  module.exports = handleEmailSubmit;
