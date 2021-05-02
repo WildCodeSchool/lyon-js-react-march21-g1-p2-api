@@ -5,7 +5,7 @@ const handleEmailSubmit = () => {
     emailer.sendMail(
       {
         from: 'joris-maupied_student2021@wilder.school',
-        to: 'maupied69@hotmail.com',
+        to: 'maupiedjoris@gmail.com',
         subject: "Vous avez recu un message de la part d'un utilisateur",
         text: 'test',
         html: '<p>test</p>',
