@@ -1,4 +1,4 @@
-USE p2_g1;
+USE upizz;
 CREATE TABLE ingredients (
 ingredients_id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
 ingredients_name VARCHAR(255) NOT NULL,
