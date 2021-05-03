@@ -1,6 +1,7 @@
 const axios = require('axios');
 const express = require('express');
 
+
 const cors = require('cors');
 const Joi = require('joi');
 const {
@@ -10,6 +11,7 @@ const {
   EDAMAM_API_ID,
   EDAMAM_SECRET_API_KEY,
 } = require('./env');
+const emailer = require('./emailer');
 const connection = require('./db-config');
 
 const app = express();
@@ -206,6 +208,29 @@ chatbox_messagesRouter.get('/:id', (req, res) => {
     });
 });
 */
+
+app.post( "/contact", (req,res) => {
+  const { email, name, subject, text } = req.body;
+  // error handlings
+  emailer.sendMail(
+    {
+      from: 'joris-maupied_student2021@wilder.school',
+      to: 'joris-maupied_student2021@wilder.school',
+      subject,
+      text: `${name} tried to reach you with this message : ${text} from this email : ${email}`,
+      html: `${name} tried to reach you with this message : ${text} from this email : ${email}`,
+    },
+    (err) => {
+      if  (err) {
+        console.error(err);
+        res.sendStatus(500);
+      } 
+      else res.sendStatus(200)
+    }
+  );
+} )
+
+
 
 // server setup
 app.listen(PORT, () => {
