@@ -1,5 +1,4 @@
-CREATE DATABASE upizz;
-USE upizz;
+USE p2_g1;
 CREATE TABLE orders (
 id INT NOT NULL AUTO_INCREMENT,
 ingredients VARCHAR(255) NOT NULL,
