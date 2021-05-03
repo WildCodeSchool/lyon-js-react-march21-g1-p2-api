@@ -211,7 +211,7 @@ chatbox_messagesRouter.get('/:id', (req, res) => {
 
 app.post( "/contact", (req,res) => {
   const { email, name, subject, text } = req.body;
-  // error handlings
+  // error handlings joi
   emailer.sendMail(
     {
       from: 'joris-maupied_student2021@wilder.school',
