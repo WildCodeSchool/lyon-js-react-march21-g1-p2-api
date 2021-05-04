@@ -210,22 +210,23 @@ chatbox_messagesRouter.get('/:id', (req, res) => {
 */
 
 app.post( "/contact", (req,res) => {
-  const { email, name, subject, text } = req.body;
+  const { email, name, subject, description } = req.body;
   // error handlings joi
   emailer.sendMail(
     {
       from: 'joris-maupied_student2021@wilder.school',
-      to: 'joris-maupied_student2021@wilder.school',
+      to: 'maupied69@hotmail.com',
       subject,
-      text: `${name} tried to reach you with this message : ${text} from this email : ${email}`,
-      html: `${name} tried to reach you with this message : ${text} from this email : ${email}`,
+      text: `${name} tried to reach you with this message : ${description} from this email : ${email}`,
+      html: `${name} tried to reach you with this message : ${description} from this email : ${email}`,
     },
-    (err) => {
+    (err,info) => {
       if  (err) {
         console.error(err);
         res.sendStatus(500);
       } 
-      else res.sendStatus(200)
+      else console.log(info);
+      res.sendStatus(200)
     }
   );
 } )
