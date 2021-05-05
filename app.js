@@ -171,6 +171,24 @@ app.post( "/contact", (req,res) => {
 
 
 // server setup
+/* ********************** Router for predefined pizzas ********************** */
+const predefRouter = express.Router();
+app.use('/order/pizza-list', predefRouter);
+
+predefRouter.get('/', (req, res) => {
+  connection
+    .promise()
+    .query('SELECT * FROM pizzas')
+    .then(([results]) => {
+      res.json(results);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.sendStatus(500);
+    });
+});
+
+/* ********************** server setup ********************** */
 app.listen(PORT, () => {
   if (!inTestEnv) {
     console.log(`Server running on port ${PORT}`);
