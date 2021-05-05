@@ -1,6 +1,7 @@
 const axios = require('axios');
 const express = require('express');
 
+
 const cors = require('cors');
 const Joi = require('joi');
 const {
@@ -100,21 +101,6 @@ orderRouter.get('/', (req, res) => {
     });
 });
 
-orderRouter.get('/:id', (req, res) => {
-  const { id } = req.params;
-  connection
-    .promise()
-    .query('SELECT * FROM orders WHERE id = ?', [id])
-    .then(([results]) => {
-      if (results.length) res.send(results[0]);
-      else res.sendStatus(404);
-    })
-    .catch((err) => {
-      console.error(err);
-      res.sendStatus(500);
-    });
-});
-
 orderRouter.post('/', (req, res) => {
   const { ingredients, quantity, price } = req.body;
   const { error: validationErrors } = Joi.object({
@@ -142,26 +128,7 @@ orderRouter.post('/', (req, res) => {
   }
 });
 
-/* ********************** Router for ingredients ********************** */
-const ingredientsRouter = express.Router();
-app.use('/order/create-pizza', ingredientsRouter);
-
-ingredientsRouter.get('/', (req, res) => {
-  connection
-    .promise()
-    .query(
-      'SELECT ingredients_category AS category, ingredients_id AS id, ingredients_imgaddress AS imgsrc, ingredients_imglayer AS imglayer, ingredients_ingr AS ingr,ingredients_kcal100 AS kcal100, ingredients_name AS name, ingredients_price AS price, ingredients_serving AS serving FROM ingredients'
-    )
-    .then(([results]) => {
-      res.json(results);
-    })
-    .catch((err) => {
-      console.error(err);
-      res.sendStatus(500);
-    });
-});
-
-ingredientsRouter.get('/:id', (req, res) => {
+orderRouter.get('/:id', (req, res) => {
   const { id } = req.params;
   connection
     .promise()
@@ -179,6 +146,31 @@ ingredientsRouter.get('/:id', (req, res) => {
     });
 });
 
+app.post( "/contact", (req,res) => {
+  const { email, name, subject, description } = req.body;
+  // error handlings joi
+  emailer.sendMail(
+    {
+      from: 'joris-maupied_student2021@wilder.school',
+      to: 'maupied69@hotmail.com',
+      subject,
+      text: `${name} tried to reach you with this message : ${description} from this email : ${email}`,
+      html: `${name} tried to reach you with this message : ${description} from this email : ${email}`,
+    },
+    (err,info) => {
+      if  (err) {
+        console.error(err);
+        res.sendStatus(500);
+      } 
+      else console.log(info);
+      res.sendStatus(200)
+    }
+  );
+} )
+
+
+
+// server setup
 /* ********************** Router for predefined pizzas ********************** */
 const predefRouter = express.Router();
 app.use('/order/pizza-list', predefRouter);
@@ -195,30 +187,6 @@ predefRouter.get('/', (req, res) => {
       res.sendStatus(500);
     });
 });
-
-// route for contact mail
-
-app.post( "/contact", (req,res) => {
-    const { email, name, subject, description } = req.body;
-    // error handlings joi
-    emailer.sendMail(
-      {
-        from: 'joris-maupied_student2021@wilder.school',
-        to: 'maupied69@hotmail.com',
-        subject,
-        text: `${name} tried to reach you with this message : ${description} from this email : ${email}`,
-        html: `${name} tried to reach you with this message : ${description} from this email : ${email}`,
-      },
-      (err,info) => {
-        if  (err) {
-          console.error(err);
-          res.sendStatus(500);
-        } 
-        else console.log(info);
-        res.sendStatus(200)
-      }
-    );
-  } )
 
 /* ********************** server setup ********************** */
 app.listen(PORT, () => {
