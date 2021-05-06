@@ -142,6 +142,47 @@ orderRouter.post('/', (req, res) => {
   }
 });
 
+/* ********************** Router for messages ********************** */
+const messagesRouter = express.Router();
+app.use('/contact', messagesRouter);
+
+messagesRouter.get('/', (req, res) => {
+  connection
+    .promise()
+    .query('SELECT * FROM messages ORDER BY id DESC LIMIT 4')
+    .then(([results]) => {
+      res.json(results);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.sendStatus(500);
+    });
+});
+
+messagesRouter.post('/', (req, res) => {
+  const { user, input } = req.body;
+  const { error: validationErrors } = Joi.object({
+    user: Joi.string().max(30).required(),
+    input: Joi.string().required(),
+  }).validate({ user, input }, { abortEarly: false });
+
+  if (validationErrors) {
+    res.status(422).send({ validationErrors });
+    console.log('error');
+  } else {
+    connection
+      .promise()
+      .query('INSERT INTO messages (user, input) VALUES (?, ?)', [user, input])
+      .then(([result]) => {
+        res.send({ id: result.insertId, user, input });
+      })
+      .catch((err) => {
+        console.error(err);
+        res.sendStatus(500);
+      });
+  }
+});
+
 /* ********************** Router for ingredients ********************** */
 const ingredientsRouter = express.Router();
 app.use('/order/create-pizza', ingredientsRouter);
@@ -198,34 +239,35 @@ predefRouter.get('/', (req, res) => {
 
 // route for contact mail
 
-app.post( "/contact", (req,res) => {
-    const { email, name, subject, description } = req.body;
-    // error handlings joi
-    emailer.sendMail(
-      {
-        from: 'joris-maupied_student2021@wilder.school',
-        to: 'maupied69@hotmail.com',
-        subject,
-        text: `${name} tried to reach you with this message : ${description} from this email : ${email}`,
-        html: `${name} tried to reach you with this message : ${description} from this email : ${email}`,
-      },
-      (err,info) => {
-        if  (err) {
-          console.error(err);
-          res.sendStatus(500);
-        } 
-        else console.log(info);
-        res.sendStatus(200)
-      }
-    );
-  } )
-
-/* ********************** server setup ********************** */
-app.listen(PORT, () => {
-  if (!inTestEnv) {
-    console.log(`Server running on port ${PORT}`);
-  }
+app.post('/contact', (req, res) => {
+  const { email, name, subject, description } = req.body;
+  // error handlings joi
+  emailer.sendMail(
+    {
+      from: 'joris-maupied_student2021@wilder.school',
+      to: 'maupied69@hotmail.com',
+      subject,
+      text: `${name} tried to reach you with this message : ${description} from this email : ${email}`,
+      html: `${name} tried to reach you with this message : ${description} from this email : ${email}`,
+    },
+    (err, info) => {
+      if (err) {
+        console.error(err);
+        res.sendStatus(500);
+      } else console.log(info);
+      res.sendStatus(200);
+    }
+  );
 });
+
+/* ********************** server setup ********************** */ app.listen(
+  PORT,
+  () => {
+    if (!inTestEnv) {
+      console.log(`Server running on port ${PORT}`);
+    }
+  }
+);
 
 /* ********************** process setup : improves error reporting ********************** */
 process.on('unhandledRejection', (error) => {
