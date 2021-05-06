@@ -239,7 +239,7 @@ predefRouter.get('/', (req, res) => {
 
 // route for contact mail
 
-app.post('/contact', (req, res) => {
+app.post('/contactmail', (req, res) => {
   const { email, name, subject, description } = req.body;
   // error handlings joi
   emailer.sendMail(
