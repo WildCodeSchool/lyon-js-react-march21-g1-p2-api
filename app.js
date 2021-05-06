@@ -90,7 +90,7 @@ app.use('/orders', orderRouter);
 orderRouter.get('/', (req, res) => {
   connection
     .promise()
-    .query('SELECT * FROM orders')
+    .query('SELECT * FROM orders ORDER BY id DESC')
     .then(([results]) => {
       res.json(results);
     })
@@ -168,7 +168,6 @@ messagesRouter.post('/', (req, res) => {
 
   if (validationErrors) {
     res.status(422).send({ validationErrors });
-    console.log('error');
   } else {
     connection
       .promise()
