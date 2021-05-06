@@ -8,7 +8,6 @@ CREATE TABLE pizzas (
   pizzas_price FLOAT(10, 2) CHECK(pizzas_price >= 0) NOT NULL,
   pizzas_kcal INT CHECK(pizzas_kcal >= 0) NOT NULL
 );
-
 INSERT INTO
   pizzas (
     pizzas_userid,
@@ -42,4 +41,4 @@ VALUES
     '{"Pâte à pizza":1,"Sauce tomate":1,"Tomates":3,"Fromage":1,"Chorizo":2,"Oignons":2,"Poivrons":2}',
     11,
     1177
-  ); 
+  );
