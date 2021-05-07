@@ -1,0 +1,6 @@
+CREATE TABLE upizz.messages (
+  id INT NOT NULL AUTO_INCREMENT,
+  `user` VARCHAR(30) NOT NULL,
+  `input` TEXT NOT NULL,
+  PRIMARY KEY(id)
+);
